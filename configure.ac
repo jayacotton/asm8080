@@ -11,9 +11,9 @@
 # *****************************************************************************
 
 
-AC_INIT(src)
+AC_INIT(asm8080, 0.9.2)
 
-AM_INIT_AUTOMAKE(asm8080, 0.9.2)
+AM_INIT_AUTOMAKE
 
 # Checks for programs.
 # --------------------

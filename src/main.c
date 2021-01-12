@@ -255,7 +255,7 @@ int set_pc(int pc_value)
 
 static void check_new_pc(int count)
 {
-	int	new_pc	= target.addr + count;	/*	Calculate new PC value. */
+	unsigned int	new_pc	= target.addr + count;	/*	Calculate new PC value. */
 
 	/*	- Check if the new program counter is out of range, and
 	 *	  manage messages if necessary.

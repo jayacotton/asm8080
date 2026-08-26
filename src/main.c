@@ -2,10 +2,9 @@
  *	Module Name:	main.c
  *	Description:	Main module for Intel 8080 Assembler.
  *	Copyright(c):	See below...
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	28 June 2011
- *	Last modified:  4/23/2017	
+ *	Last modified:	8 Apr 2022
  *
  * Notes:
  *						- The assembler assumes that the left column is a label,
@@ -92,9 +91,9 @@ const char	*name_pgm	= "asm8080";		/*	Program Name. */
 
 /*	Program Version.
  *	---------------- */
-static const unsigned char	pgm_version_v	= 1;	/*	Version. */
+static const unsigned char	pgm_version_v	= 2;	/*	Version. */
 static const unsigned char	pgm_version_sv	= 0;	/*	Sub-Version. */
-static const unsigned char	pgm_version_rn	= 14;	/*	Revision Number. */
+static const unsigned char	pgm_version_rn	= 0;	/*	Revision Number. */
 
 
 /*	*************************************************************************
@@ -176,6 +175,7 @@ char Image[1024 * 64];
  *	*/
 char	*empty_string	= "";
 
+int  Processor = 8080;   /* default 8080 or 8085 via command-line -p */
 
 /*	Private variables.
  *	****************** */
@@ -2124,9 +2124,9 @@ size_t	str_len;
 /*	*************************************************************************
  *	Function name:		display_help
  *	Description:		Display Help.
- *	Author(s):			Jay Cotton, Claude Sylvain
+ *	Author(s):			Jay Cotton, Claude Sylvain, David Littell
  *	Created:				2007
- *	Last modified:		30 May 2013
+ *	Last modified:		8 Apr 2022
  *	Parameters:			void
  *	Returns:				void
  *	Globals:
@@ -2142,6 +2142,7 @@ static void display_help(void)
 	printf("  -l<filename> : Generate listing file.\n");
 	printf("  -o<filename> : Define output files (optionnal).\n");
 	printf("  -P           : Print instruction #cycles in listing file.\n");
+        printf("  -p<8080|8085>: processor selection (default 8080)\n");
 	printf("  -v           : Display version.\n");
 }
 
@@ -2698,6 +2699,47 @@ static int process_option_o(char *text)
 
 
 /*	*************************************************************************
+ *	Function name:	process_option_p
+ *	Description:	Process Option "-p".
+ *	Author(s):	David Littell
+ *	Created:	8 Apr 2022
+ *	Last modified:	8 Apr 2022
+ *
+ *	Parameters:	char*  text: Pointer to text that hold "-p" option.
+ *
+ *	Returns:	int:
+ *				-1	: Operation failed.
+ *				0	: Operation successfull.
+ *
+ *	Globals:	int  Processor;
+ *
+ *	Notes:
+ *	************************************************************************* */
+
+static int process_option_p(char *text)
+{
+
+	text += 2;   /* Bypass "-p". */
+
+	if( (strncmp( text, "8080", strlen( "8080" ) ) != 0) &&
+            (strncmp( text, "8085", strlen( "8085" ) ) != 0) )   /* must be exactly "8080" or "8085". */
+          {
+
+            fprintf( stderr, "invalid processor selection \"%s\"\n", text );
+
+            return -1;
+
+          }
+
+
+        Processor = atoi( text );
+
+        return 0;
+
+}
+
+
+/*	*************************************************************************
  *	Function name:	check_set_output_fn
  *	Description:	Check Output Files Names, and Set them if necessary.
  *	Author(s):		Claude Sylvain
@@ -2986,9 +3028,9 @@ static int process_input_file(char *text)
 /*	*************************************************************************
  *	Function name:	cmd_line_parser
  *	Description:	Command Line Parser.
- *	Author(s):		Claude Sylvain
+ *	Author(s):		Claude Sylvain, David Littell
  *	Created:		31 December 2010
- *	Last modified:	1 January 2012
+ *	Last modified:	8 Apr 2022
  *
  *	Parameters:		int argv:
  *							...
@@ -3050,6 +3092,13 @@ static int cmd_line_parser(int argc, char *argv[])
 						 *	----------------------------------- */
 						case 'P':
 							print_inc	= 1;
+							break;
+
+						/*	"-p" option.
+						 *	processor selection (default 8080).
+						 *	----------------------------------- */
+						case 'p':
+							process_option_p(*argv);
 							break;
 
 						/*	- On "-h" option of unknown option, display

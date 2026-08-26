@@ -104,6 +104,8 @@ extern SYMBOL	*Symbols;
 
 extern char	*empty_string;
 
+extern int  Processor;   /* 8080 or 8085 */
+
 
 /*	*************************************************************************
  *	                          FUNCTIONS DECLARATION

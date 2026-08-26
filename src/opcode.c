@@ -2,9 +2,9 @@
  *	Module Name:	opcode.c
  *	Description:	Opcode.
  *	Copyright(c):	See below...
- *	Author(s):		Claude Sylvain
+ *	Author(s):		Claude Sylvain, David Littell
  *	Created:			24 December 2010
- *	Last modified:	26 May 2013
+ *	Last modified:	8 Apr 2022
  * Notes:
  *	************************************************************************* */
 
@@ -143,6 +143,7 @@ static int proc_rrc(char *, char *);
 static int proc_ral(char *, char *);
 static int proc_rar(char *, char *);
 static int proc_ret(char *, char *);
+static int proc_rim(char *, char *);
 static int proc_rnz(char *, char *);
 static int proc_rz(char *, char *);
 static int proc_rnc(char *, char *);
@@ -155,6 +156,7 @@ static int proc_rst(char *label, char *equation);
 
 static int proc_sta(char *, char *);
 static int proc_shld(char *, char *);
+static int proc_sim(char *, char *);
 static int proc_stax(char *, char *);
 static int proc_sub(char *, char *);
 static int proc_sui(char *, char *);
@@ -206,6 +208,7 @@ const keyword_t	OpCodes[] =
 	{"POP", proc_pop},			{"XTHL", proc_xthl},	{"SPHL", proc_sphl},
 	{"IN", proc_in},			{"OUT", proc_out},	{"EI", proc_ei},
 	{"DI", proc_di},			{"HLT", proc_hlt},	{"NOP", proc_nop},
+	{"RIM", proc_rim},			{"SIM", proc_sim},
 	{0, NULL}
 };
 
@@ -699,9 +702,9 @@ int proc_out(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rst
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -731,8 +734,17 @@ int proc_rst(char *label, char *equation)
 	tmp			= tmp & 0x7;
 	b1				|= tmp << 3;
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 12;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -741,9 +753,9 @@ int proc_rst(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_mov
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -788,8 +800,17 @@ static int proc_mov(char *label, char *equation)
 	 *	-------------------------------------------------------------- */
 	if ((dst_is_reg != 0) && (src_is_reg != 0))
 	{
+
+          if( Processor == 8080 )
+            {
 		inst_cyc[0]	= 5;
 		inst_cyc[1]	= 5;
+	}
+          else   /* 8085 T States */
+            {
+              inst_cyc[ 0 ] = 4;
+              inst_cyc[ 1 ] = 4;
+            }
 	}
 	/*	Instruction use "M" for destination or source.
 	 *	---------------------------------------------- */
@@ -1570,9 +1591,9 @@ static int proc_sbi(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_inr
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -1604,8 +1625,18 @@ static int proc_inr(char *label, char *equation)
 	 *	---------------------------------------------- */
 	if (dst_is_reg != 0)
 	{
+
+          if( Processor == 8080 )
+            {
 		inst_cyc[0]	= 5;
 		inst_cyc[1]	= 5;
+	}
+          else   /* 8085 T States */
+            {
+              inst_cyc[ 0 ] = 4;
+              inst_cyc[ 1 ] = 4;
+            }
+
 	}
 	/*	Instruction use "M" for destination.
 	 *	------------------------------------ */
@@ -1622,9 +1653,9 @@ static int proc_inr(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_dcr
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -1656,8 +1687,18 @@ static int proc_dcr(char *label, char *equation)
 	 *	---------------------------------------------- */
 	if (dst_is_reg != 0)
 	{
+
+          if( Processor == 8080 )
+            {
 		inst_cyc[0]	= 5;
 		inst_cyc[1]	= 5;
+	}
+          else   /* 8085 T States */
+            {
+              inst_cyc[ 0 ] = 4;
+              inst_cyc[ 1 ] = 4;
+            }
+
 	}
 	/*	Instruction use "M" for destination.
 	 *	------------------------------------ */
@@ -1674,9 +1715,9 @@ static int proc_dcr(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_inx
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -1702,8 +1743,17 @@ static int proc_inx(char *label, char *equation)
 	parse_reg16bits(equation, PR16_AR_BC | PR16_AR_DE | PR16_AR_HL | PR16_AR_SP);
 
 	data_size	= 1;			/* Now the value. */
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 5;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 6;
+          }
 
 	return (TEXT);
 }
@@ -1712,9 +1762,9 @@ static int proc_inx(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_dcx
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -1740,8 +1790,17 @@ static int proc_dcx(char *label, char *equation)
 	parse_reg16bits(equation, PR16_AR_BC | PR16_AR_DE | PR16_AR_HL | PR16_AR_SP);
 
 	data_size	= 1;			/* Now the value. */
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 5;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 6;
+          }
 
 	return (TEXT);
 }
@@ -2462,9 +2521,9 @@ static int proc_jmp(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jnz
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2494,8 +2553,17 @@ static int proc_jnz(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2504,9 +2572,9 @@ static int proc_jnz(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jz
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2536,8 +2604,17 @@ static int proc_jz(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2546,9 +2623,9 @@ static int proc_jz(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jnc
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2578,8 +2655,17 @@ static int proc_jnc(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2588,9 +2674,9 @@ static int proc_jnc(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jc
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2620,8 +2706,17 @@ static int proc_jc(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2630,9 +2725,9 @@ static int proc_jc(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jpo
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2662,8 +2757,17 @@ static int proc_jpo(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2672,9 +2776,9 @@ static int proc_jpo(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jpe
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2704,8 +2808,17 @@ static int proc_jpe(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2714,9 +2827,9 @@ static int proc_jpe(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jp
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2746,8 +2859,17 @@ static int proc_jp(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2756,9 +2878,9 @@ static int proc_jp(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_jm
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2788,8 +2910,17 @@ static int proc_jm(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 10;
 	inst_cyc[1]	= 10;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 7;
+            inst_cyc[ 1 ] = 10;
+          }
 
 	return (TEXT);
 }
@@ -2798,9 +2929,9 @@ static int proc_jm(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_call
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2830,8 +2961,17 @@ static int proc_call(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 17;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 18;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -2840,9 +2980,9 @@ static int proc_call(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cnz
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2872,8 +3012,17 @@ static int proc_cnz(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -2882,9 +3031,9 @@ static int proc_cnz(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cz
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2914,8 +3063,17 @@ static int proc_cz(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -2924,9 +3082,9 @@ static int proc_cz(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cnc
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2956,8 +3114,17 @@ static int proc_cnc(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -2966,9 +3133,9 @@ static int proc_cnc(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cc
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -2998,8 +3165,17 @@ static int proc_cc(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -3008,9 +3184,9 @@ static int proc_cc(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cpo
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3040,8 +3216,17 @@ static int proc_cpo(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -3050,9 +3235,9 @@ static int proc_cpo(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cpe
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3082,8 +3267,17 @@ static int proc_cpe(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -3092,9 +3286,9 @@ static int proc_cpe(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cp
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3124,8 +3318,17 @@ static int proc_cp(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -3134,9 +3337,9 @@ static int proc_cp(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_cm
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3166,8 +3369,17 @@ static int proc_cm(char *label, char *equation)
 	b2				= tmp & 0xFF;
 	b3				= (tmp >> 8) & 0xFF;
 	data_size	= 3;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 17;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 9;
+            inst_cyc[ 1 ] = 18;
+          }
 
 	return (TEXT);
 }
@@ -3209,9 +3421,9 @@ static int proc_ret(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rnz
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3232,8 +3444,17 @@ static int proc_rnz(char *label, char *equation)
 
 	b1				= 0xC0;
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3242,9 +3463,9 @@ static int proc_rnz(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rz
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3265,8 +3486,17 @@ static int proc_rz(char *label, char *equation)
 
 	b1				= 0xC0 + (1 << 3);
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3275,9 +3505,9 @@ static int proc_rz(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rnc
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3298,8 +3528,17 @@ static int proc_rnc(char *label, char *equation)
 
 	b1				= 0xC0 + (2 << 3);
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3308,9 +3547,9 @@ static int proc_rnc(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rc
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3331,8 +3570,17 @@ static int proc_rc(char *label, char *equation)
 
 	b1				= 0xC0 + (3 << 3);
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3341,9 +3589,9 @@ static int proc_rc(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rpo
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3364,8 +3612,17 @@ static int proc_rpo(char *label, char *equation)
 
 	b1				= 0xC0 + (4 << 3);
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3374,9 +3631,9 @@ static int proc_rpo(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rpe
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3397,8 +3654,17 @@ static int proc_rpe(char *label, char *equation)
 
 	b1				= 0xC0 + (5 << 3);
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3407,9 +3673,9 @@ static int proc_rpe(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rp
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3430,8 +3696,17 @@ static int proc_rp(char *label, char *equation)
 
 	b1				= 0xC0 + (6 << 3);
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3440,9 +3715,9 @@ static int proc_rp(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_rm
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3463,8 +3738,17 @@ static int proc_rm(char *label, char *equation)
 
 	b1				= 0xC0 + (7 << 3);
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	return (TEXT);
 }
@@ -3473,9 +3757,9 @@ static int proc_rm(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_pchl
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3496,8 +3780,17 @@ static int proc_pchl(char *label, char *equation)
 
 	b1				= 0xE9;
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 5;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 6;
+          }
 
 	return (TEXT);
 }
@@ -3506,9 +3799,9 @@ static int proc_pchl(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_push
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3529,8 +3822,17 @@ static int proc_push(char *label, char *equation)
 
 	b1				= 0xC5;
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 11;
 	inst_cyc[1]	= 11;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 12;
+            inst_cyc[ 1 ] = 12;
+          }
 
 	parse_reg16bits(
 		equation, PR16_AR_BC | PR16_AR_DE | PR16_AR_HL | PR16_AR_PSW);
@@ -3611,9 +3913,9 @@ static int proc_xthl(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_sphl
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3634,8 +3936,17 @@ static int proc_sphl(char *label, char *equation)
 
 	b1				= 0xF9;
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 5;
 	inst_cyc[1]	= 5;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 6;
+            inst_cyc[ 1 ] = 6;
+          }
 
 	return (TEXT);
 }
@@ -3710,9 +4021,9 @@ static int proc_di(char *label, char *equation)
 /*	*************************************************************************
  *	Function name:	proc_hlt
  *	Description:
- *	Author(s):		Jay Cotton, Claude Sylvain
+ *	Author(s):		Jay Cotton, Claude Sylvain, David Littell
  *	Created:			2007
- *	Last modified:	26 May 2013
+ *	Last modified:	9 Apr 2022
  *
  *	Parameters:		char *label:
  *							...
@@ -3733,11 +4044,85 @@ static int proc_hlt(char *label, char *equation)
 
 	b1				= 0x76;
 	data_size	= 1;
+
+        if( Processor == 8080 )
+          {
 	inst_cyc[0]	= 7;
 	inst_cyc[1]	= 7;
+          }
+        else   /* 8085 T States */
+          {
+            inst_cyc[ 0 ] = 5;
+            inst_cyc[ 1 ] = 5;
+          }
 
 	return (TEXT);
 }
 
+
+/*	*************************************************************************
+ *	Function name:	proc_rim
+ *	Description:
+ *	Author(s):		David Littell
+ *	Created:			2022
+ *	Last modified:	6 Apr 2012
+ *
+ *	Parameters:		char *label:
+ *							...
+ *
+ *						char *equation:
+ *							...
+ *
+ *	Returns:			int:
+ *							...
+ *
+ *	Globals:
+ *	Notes:
+ *	************************************************************************* */
+
+static int proc_rim(char *label, char *equation)
+{
+	process_label(label);		/*	Process Label. */
+
+	b1				= 0x20;
+	data_size	= 1;
+	inst_cyc[0]	= 4;
+	inst_cyc[1]	= 4;
+
+	return (TEXT);
+}
+
+
+/*	*************************************************************************
+ *	Function name:	proc_sim
+ *	Description:
+ *	Author(s):		David Littell
+ *	Created:			2022
+ *	Last modified:	6 Apr 2012
+ *
+ *	Parameters:		char *label:
+ *							...
+ *
+ *						char *equation:
+ *							...
+ *
+ *	Returns:			int:
+ *							...
+ *
+ *	Globals:
+ *	Notes:
+ *	************************************************************************* */
+
+static int proc_sim(char *label, char *equation)
+{
+	process_label(label);		/*	Process Label. */
+
+	b1				= 0x30;
+	data_size	= 1;
+	inst_cyc[0]	= 4;
+	inst_cyc[1]	= 4;
+
+	return (TEXT);
+}
 
 

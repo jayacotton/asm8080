@@ -17,4 +17,6 @@ To install this package, do the following:
 Contributors:
 	Jay Cotton  ; original first draft.
 	Claude Sylvain ; Tons of rewrites and code additions.
-	
+	David Littell; 8085 instructions.
+
+

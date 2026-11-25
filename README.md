@@ -11,3 +11,9 @@ To built this package, do the following:
 To install this package, do the following:
 
 	make install
+	This will install in /usr/local/bin
+
+
+Contributors:
+	Jay Cotton  ; original first draft.
+	
